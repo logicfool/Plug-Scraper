@@ -17,4 +17,13 @@ Note: This is in beta phase (buggy) and requires fixes as I've used hackish meth
 <b>Languages Used:</b>
   1. Python
 
+<b>To Do</b>
+<ul>
+  <li>Add More Plugs</li>
+  <li>Find Better Ways to load modules and get loaded modules data!</li>
+  <li>Removing Plugs would clear the defined functions and delete the data from globals</li>
+  <li>Batch Scraping</li>
+  <li>Async Support for Faster processing</li>
+ </ul>
+    
 Thanks and you are always welcome to modify and make changes!
