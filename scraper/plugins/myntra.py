@@ -6,31 +6,7 @@ class Myntra():
             self.url = args[0]
         else:
             raise Exception(NameError,"URL NOT PASSED")
-        self.api_url = 'https://www.myntra.com/gateway/v2/search'
-        self.api_url =  self.api_url+self.url.replace(get_domain_info(self.url)['full'],'')
-        self.headers = {
-    'Host': 'www.myntra.com',
-'Connection': 'keep-alive',
-'DNT': '1',
-'x-meta-app': 'channel=web',
-'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
-'X-myntraweb': 'Yes',
-'x-location-context': 'pincode=110019;source=IP',
-'Content-Type': 'application/json',
-'X-Sec-Clge-Req-Type': 'ajax',
-'Accept': 'application/json',
-'x-myntra-app': 'deviceID=d09a1093-08a7-4f9d-863d-f667deae7b39;customerID=;reqChannel=web;',
-'X-Requested-With': 'browser',
-'x-myntra-network': 'yes',
-'app': 'web',
-'Sec-Fetch-Site': 'same-origin',
-'Sec-Fetch-Mode': 'cors',
-'Sec-Fetch-Dest': 'empty',
-'Referer': 'https://www.myntra.com/men-topwear?p=3&rf=Discount%20Range%3A70.0_100.0_70.0%20TO%20100.0&sort=price_asc',
-'Accept-Encoding': 'gzip, deflate, br',
-'Accept-Language': 'en-US,en;q=0.9'}
-        self.headers['Referer']  = self.url
-
+        self.all_results = []
 
     def cleanify_price(self,price):
         intt = ''
@@ -69,28 +45,30 @@ class Myntra():
       h = {'User-Agent':hh}
       return h
 
-    def get_search_page(self):
+    def get_results(self):
       res = r().get(self.url,headers = self.gen_headers())
       self.html = res.html
       pattern = re.compile('var pageStateData = (.*?);')
       pattern1 = re.compile('window.__myx = (.*)')
       soup = BeautifulSoup(res.text, "lxml")
       scripts = soup.find_all('script')
+      self.all_results = []
       if scripts:
         for script in scripts:
           if pattern1.match(str(script.string)):
               self.data = pattern1.match(str(script.string))
               self.stock = json.loads(self.data.groups()[0])
-              data = self.stock
+              self.data = self.stock
       else:
         scripts = False
       if scripts:
         try:
-          all_results = data['searchData']['results']['products']
-          results = []
-          for item in all_results:
+          self.results = self.data['searchData']['results']['products']
+          result = mydict({})
+          domain = get_domain_info(self.url)
+          for item in self.results:
             result = mydict({})
-            result.land_url = item['landingPageUrl']
+            result.url = domain.full+'/'+item['landingPageUrl']
             result.product_id = item['productId']
             result.name = item['productName']
             result.rating = int(item['rating'])
@@ -102,36 +80,62 @@ class Myntra():
             result.gender = item['gender']
             result.primary_color = item['primaryColour']
             result.category = item['category']
-            print(result.category)
-            result.real_price = self.cleanify_price(item['mrp'])
+            real_price = item['mrp']
             deal_price = item['price']
-            if deal_price:
-              print('SUb level 1')
-              result.deal_price = self.cleanify_price(deal_price)
-              result.saving = self.perc_calc(result.real_price,result.deal_price)
-              result.saving_num = result.saving[1]
-              result.saving = result.saving[0]
-              print('Exits')
-            else:
+            if real_price == deal_price:
+              result.real_price = self.cleanify_price(real_price)
               result.deal_price = None
+              result.is_deal = False
               result.saving = None
               result.saving_num = None
-            results.append(result)
-          return results
+            else:
+              result.real_price = self.cleanify_price(real_price)
+              result.deal_price = self.cleanify_price(deal_price)
+              result.is_deal = True
+              result.saving = self.perc_calc(real_price,deal_price)
+              result.saving_num = result.saving[1]
+              result.saving = result.saving[0]
+            self.all_results.append(result)
+          return self.all_results
 
         except:
-          return None
+          try:
+            self.results = self.data['pdpData']
+            result = self.results
+            results = mydict({})
+            results.product_id = result['id']
+            results.name = result['name']
+            price = result['price']
+            real_price = price['mrp']
+            deal_price = price['discounted']
+            if real_price == deal_price:
+              results.real_price = self.cleanify_price(real_price)
+              results.deal_price = None
+              results.is_deal = False
+              results.saving = None
+              results.saving_num = None
+            else:
+              results.real_price = self.cleanify_price(real_price)
+              results.deal_price = self.cleanify_price(deal_price)
+              results.is_deal = True
+              results.saving = self.perc_calc(real_price,deal_price)
+              results.saving_num = results.saving[1]
+              results.saving = results.saving[0]
+            analytics = result['analytics']
+            results.category = analytics['masterCategory']
+            results.sub_category  = analytics['subCategory']
+            results.type = analytics['articleType']
+            results.extra_info = result['articleAttributes']
+            results.offers = result['discounts']
+            results.extra_offers = result['offers']
+            self.all_results.append(results)
+            return self.all_results
+          except:
+            return self.all_results
+
       else:
-        return None
-
-
-    def get_results(self):
-        res = r().get(self.api_url,headers=self.headers)
-        return res
-
-    
-
-
+        return self.all_results
+        
 
 ''''
 plugs = pickle.load(open(plugs_db_loc,'rb'))
