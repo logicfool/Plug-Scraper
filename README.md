@@ -3,7 +3,7 @@
 
 A Plugin Based Scraper with some extra features
 
-Note: This is in beta phase (buggy) and requires fixes as I've used hackish methods (I think so) to make it work and you are free to clone and make pull requests
+Note: This is in beta phase (buggy) and requires fixes as I've used hackish methods (I think so) to make it work and you are free to clone and make pull requests<br>While my main moto was to make my scraping as easy as possible so I made this you can impliment and use it in other projects/codes as well ;-)
 
 <b>Features:</b>
 <ul>
