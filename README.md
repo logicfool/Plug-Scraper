@@ -21,7 +21,7 @@ Note: This is in beta phase (buggy) and requires fixes as I've used hackish meth
 <ul>
   <li>Add More Plugs</li>
   <li>Find Better Ways to load modules and get loaded modules data!</li>
-  <li>Removing Plugs would clear the defined functions and delete the data from globals(for now removing plugs wont work the data will still be there) </li>
+  <strike><li>Removing Plugs would clear the defined functions and delete the data from globals(for now removing plugs wont work the data will still be there) </li></strike>
   <li>Batch Scraping</li>
   <li>Async Support for Faster processing</li>
  </ul>
